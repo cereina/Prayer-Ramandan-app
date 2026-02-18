@@ -1,0 +1,1191 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Prayer Times + Suhoor/Imsak + Ramadan Calendar</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0b0f14">
+    
+    <!-- PrayTimes.js (supports Jafari / Ithna Ashari) -->
+    <script src="https://praytimes.org/code/v2/js/PrayTimes.js"></script>
+
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        :root {
+            --bg: #0b0f14;
+            --card: #121826;
+            --text: #e6e8ee;
+            --muted: #9aa3b2;
+            --line: #1f2a3a;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: 1050px;
+            margin: 0 auto;
+            padding: 18px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        h1 {
+            margin: 0 0 6px 0;
+            font-size: 20px;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr;
+        }
+
+        @media(min-width:920px) {
+            .grid {
+                grid-template-columns: 1.1fr 0.9fr;
+            }
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .row:last-child {
+            border-bottom: 0;
+        }
+
+        .pill {
+            font-size: 12px;
+            padding: 2px 8px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--muted);
+            display: inline-block;
+        }
+
+        .hl {
+            outline: 2px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .controls {
+            display: grid;
+            gap: 10px;
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            background: #0f1522;
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 10px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .btnrow {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btnrow button {
+            width: 100%;
+        }
+
+        .big {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .count {
+            font-size: 22px;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+        .tiny {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .err {
+            color: #ff9aa2;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--muted);
+        }
+
+        /* Responsive + accessible Ramadan table */
+        .tablewrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .tablewrap:focus-within {
+            outline: 2px solid rgba(255, 255, 255, 0.18);
+            outline-offset: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 940px;
+        }
+
+        caption {
+            text-align: left;
+            padding: 10px 10px 6px 10px;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #0f1522;
+            z-index: 1;
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 0.02em;
+            border-bottom: 1px solid var(--line);
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        tbody tr:focus-within td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        td b {
+            font-weight: 800;
+        }
+
+        /* Mobile card layout */
+        .mobileCards {
+            display: none;
+            gap: 10px;
+        }
+
+        .dayCard {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px;
+        }
+
+        .dayCard:focus {
+            outline: 2px solid rgba(255, 255, 255, 0.22);
+            outline-offset: 2px;
+        }
+
+        .dayHeader {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .dayHeader .dayNum {
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .dayHeader .greg {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .hijriLine {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .kv {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px 12px;
+            padding: 8px 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .kv:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .k {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .v {
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .v.normal {
+            font-weight: 700;
+        }
+
+        /* Switch table->cards on small screens */
+        @media (max-width: 780px) {
+            .tablewrap {
+                display: none;
+            }
+
+            .mobileCards {
+                display: grid;
+            }
+        }
+
+        .scrollHint {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="card" style="margin-bottom:12px;">
+            <h1>Prayer Times + Suhoor/Imsak + Ramadan Calendar</h1>
+            <div class="muted" id="meta">Loading…</div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="big" id="todayTitle">Today</div>
+                <div class="tiny" id="hijriNote"></div>
+
+                <div style="margin-top:10px;" id="timesList"></div>
+
+                <div style="margin-top:14px; display:flex; gap:10px; flex-wrap: wrap; align-items:center;">
+                    <span class="pill" id="nextPill">Next: —</span>
+                    <span class="pill" id="ramadanStatus">Ramadan: —</span>
+                </div>
+
+                <div style="margin-top:10px;">
+                    <div class="count" id="countdown">—</div>
+                    <!--div class="tiny" id="countdownNote"></div-->
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="big">Settings</div>
+                <div class="controls" style="margin-top:10px;">
+                    <div>
+                        <label>City</label>
+                        <select id="citySelect" aria-label="Choose city">
+                            <option value="">-- Select City --</option>
+                            <option value="montreal">Montreal</option>
+                            <option value="laval">Laval</option>
+                            <option value="longueuil">Longueuil</option>
+                            <option value="brossard">Brossard</option>
+                            <option value="ottawa">Ottawa</option>
+                            <option value="toronto">Toronto</option>
+                            <option value="vancouver">Vancouver</option>
+                        </select>
+                        <div class="tiny">Pick a city OR use GPS OR enter lat/lng.</div>
+                    </div>
+
+                    <div class="hidden">
+                        <label>Time Format</label>
+                        <select id="timeFormat" aria-label="Time format">
+                            <option value="24h">24h</option>
+                            <option value="12h">12h</option>
+                        </select>
+                    </div>
+
+                    <div class="hidden">
+                        <label>Imsak (Suhoor stop) offset minutes before Fajr</label>
+                        <input id="imsakOffset" type="number" min="0" max="90" step="1"
+                            aria-label="Imsak offset minutes" />
+                        <div class="tiny">Common values: 10–20 minutes.</div>
+                    </div>
+
+                    <div>
+                        <label>Location</label>
+                        <div class="btnrow">
+                            <button id="btnGeo" type="button">Use GPS</button>
+                            <button id="btnRefresh" type="button">Refresh</button>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div>
+                            <label>Latitude</label>
+                            <input id="lat" type="number" step="0.000001" aria-label="Latitude" />
+                        </div>
+                        <div>
+                            <label>Longitude</label>
+                            <input id="lng" type="number" step="0.000001" aria-label="Longitude" />
+                        </div>
+                    </div>
+
+                    <div class="hidden">
+                        <label>Timezone (hours from UTC)</label>
+                        <input id="tz" type="number" step="0.5" aria-label="Timezone offset" />
+                        <div class="tiny">Auto-filled from your device (handles DST).</div>
+                    </div>
+
+                    <div class="err" id="error" role="alert" aria-live="polite"></div>
+
+                    <div class="btnrow" style="margin-top:8px;">
+                        <button id="btnRamadan" type="button">Generate Ramadan Monthly Calendar</button>
+                        <button id="btnClearCalendar" type="button">Clear Calendar</button>
+                    </div>
+                    <div class="btnrow" style="margin-top:8px;">
+                        <button id="btnEnableAlerts" type="button">Enable Adhan Alerts</button>
+                        <button id="btnTestAlert" type="button">Test Alert</button>
+                    </div>
+
+                    <div class="btnrow" style="margin-top:8px;">
+                        <button id="btnEnablePush" type="button">Enable Iftar Push</button>
+                        <button id="btnDisablePush" type="button">Disable Push</button>
+                    </div>
+                    <div class="tiny" id="pushStatus">Push: Off</div>
+
+
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:12px; display:none;" id="ramadanCard" aria-label="Ramadan timetable">
+            <div class="big" id="ramadanTitle">Ramadan Calendar</div>
+            <!--div class="tiny" id="ramadanSubtitle"></div-->
+
+            <div style="margin-top:10px;" class="tablewrap" aria-label="Ramadan timetable table">
+                <table id="ramadanTable">
+                    <caption id="ramadanCaption">Ramadan Timetable</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Day</th>
+                            <th scope="col">Gregorian</th>
+                            <th scope="col">Hijri</th>
+                            <th scope="col">Imsak</th>
+                            <th scope="col">Fajr</th>
+                            <th scope="col">Sunrise</th>
+                            <th scope="col">Dhuhr</th>
+                            <th scope="col">Asr</th>
+                            <th scope="col">Maghrib (Iftar)</th>
+                            <th scope="col">Isha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ramadanTbody"></tbody>
+                </table>
+            </div>
+
+            <!-- Mobile cards -->
+            <div class="mobileCards" id="ramadanCards" aria-label="Ramadan timetable cards"></div>
+
+            <!--div class="scrollHint" id="scrollHint">
+                Tip: On larger screens, you can scroll the table horizontally.
+            </div-->
+
+            <!--div class="tiny" style="margin-top:10px;">
+                Note: Some communities apply local “iqama” offsets. You can adjust the Imsak offset, and we can add
+                per-prayer offsets too.
+            </div-->
+        </div>
+
+        <!--div class="muted" style="margin-top:14px;">
+            Tip: Save as <b>index.html</b>. Settings are stored locally in your browser.
+        </div-->
+        <audio id="adhanAudio" preload="auto">
+            <source src="adhan.mp3" type="audio/mpeg" />
+        </audio>
+    </div>
+
+    <script>
+        // -----------------------
+        // City presets (lat/lng). Timezone is taken from device to handle DST automatically.
+        // -----------------------
+        const cities = {
+            montreal: { name: "Montreal", lat: 45.5017, lng: -73.5673 },
+            laval: { name: "Laval", lat: 45.6066, lng: -73.7124 },
+            longueuil: { name: "Longueuil", lat: 45.5312, lng: -73.5181 },
+            brossard: { name: "Brossard", lat: 45.4680, lng: -73.4512 },
+            ottawa: { name: "Ottawa", lat: 45.4215, lng: -75.6972 },
+            toronto: { name: "Toronto", lat: 43.6532, lng: -79.3832 },
+            vancouver: { name: "Vancouver", lat: 49.2827, lng: -123.1207 },
+        };
+
+        // -----------------------
+        // Local storage
+        // -----------------------
+        const KEY = "shia_prayer_app_v3";
+
+        // -----------------------
+        // Helpers
+        // -----------------------
+        function pad2(n) { return String(n).padStart(2, "0"); }
+        function safeNum(v, fallback) {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : fallback;
+        }
+        function getLocalTzHours() {
+            const now = new Date();
+            return -now.getTimezoneOffset() / 60;
+        }
+
+        function parseHHMM(hhmm) {
+            const s = String(hhmm).trim().toLowerCase();
+            const ampm = s.includes("pm") ? "pm" : (s.includes("am") ? "am" : null);
+            const m = s.match(/(\d{1,2})\s*:\s*(\d{2})/);
+            if (!m) return null;
+            let hh = Number(m[1]), mm = Number(m[2]);
+            if (ampm) {
+                if (ampm === "pm" && hh !== 12) hh += 12;
+                if (ampm === "am" && hh === 12) hh = 0;
+            }
+            return { hh, mm };
+        }
+
+        function minutesSinceMidnight(hhmm) {
+            const t = parseHHMM(hhmm);
+            if (!t) return null;
+            return t.hh * 60 + t.mm;
+        }
+
+        function formatFromMinutes(total, fmt) {
+            total = (total % 1440 + 1440) % 1440;
+            const hh24 = Math.floor(total / 60);
+            const mm = total % 60;
+            if (fmt === "24h") return `${pad2(hh24)}:${pad2(mm)}`;
+            const ampm = hh24 >= 12 ? "pm" : "am";
+            let hh12 = hh24 % 12; if (hh12 === 0) hh12 = 12;
+            return `${hh12}:${pad2(mm)} ${ampm}`;
+        }
+
+        function minusMinutes(hhmm, mins, fmt) {
+            const base = minutesSinceMidnight(hhmm);
+            if (base == null) return "—";
+            return formatFromMinutes(base - mins, fmt);
+        }
+
+        function saveState(state) {
+            localStorage.setItem(KEY, JSON.stringify(state));
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(KEY);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch {
+                return null;
+            }
+        }
+
+        function toDateKey(d) {
+            return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        }
+
+        // -----------------------
+        // Hijri helpers (using Intl islamic calendar)
+        // -----------------------
+        const HIJRI_MONTHS_EN = [
+            "Muharram",
+            "Safar",
+            "Rabiʿ al-Awwal",
+            "Rabiʿ al-Thani",
+            "Jumada al-Awwal",
+            "Jumada al-Thani",
+            "Rajab",
+            "Shaʿban",
+            "Ramadan",
+            "Shawwal",
+            "Dhu al-Qaʿdah",
+            "Dhu al-Hijjah"
+        ];
+
+        function hijriParts(date) {
+            try {
+                const fmt = new Intl.DateTimeFormat("en-u-ca-islamic", {
+                    year: "numeric", month: "numeric", day: "numeric"
+                });
+                const parts = fmt.formatToParts(date);
+                const get = (type) => parts.find(p => p.type === type)?.value;
+
+                const y = Number(get("year"));
+                const m = Number(get("month"));
+                const d = Number(get("day"));
+
+                if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
+                return { y, m, d };
+            } catch {
+                return null;
+            }
+        }
+
+        function hijriLong(date) {
+            const hp = hijriParts(date);
+            if (!hp) return "";
+            const monthName = HIJRI_MONTHS_EN[hp.m - 1] || `Month ${hp.m}`;
+            return `${monthName} ${hp.d}, ${hp.y} AH`;
+        }
+
+
+        function isRamadan(date) {
+            const hp = hijriParts(date);
+            return hp ? hp.m === 9 : false; // Ramadan = month 9
+        }
+
+        function findRamadanRange(fromDate, maxDaysForward = 420) {
+            const start = new Date(fromDate);
+            start.setHours(12, 0, 0, 0);
+
+            let first = null;
+            let last = null;
+
+            for (let i = 0; i < maxDaysForward; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                if (isRamadan(d)) { first = d; break; }
+            }
+            if (!first) return null;
+
+            for (let j = 0; j < 35; j++) {
+                const d = new Date(first);
+                d.setDate(first.getDate() + j);
+                if (!isRamadan(d)) { last = new Date(d); last.setDate(d.getDate() - 1); break; }
+            }
+            if (!last) {
+                last = new Date(first);
+                last.setDate(first.getDate() + 29);
+            }
+
+            return { first, last };
+        }
+
+        // -----------------------
+        // Core state
+        // -----------------------
+        let countdownTimer = null;
+        let lastComputed = null;
+
+        // -----------------------
+        // Compute + Render Daily
+        // -----------------------
+        function computeAndRender() {
+            const errorEl = document.getElementById("error");
+            errorEl.textContent = "";
+
+            const timeFormat = document.getElementById("timeFormat").value;
+            const lat = safeNum(document.getElementById("lat").value, null);
+            const lng = safeNum(document.getElementById("lng").value, null);
+            const tz = safeNum(document.getElementById("tz").value, getLocalTzHours());
+            const imsakOffset = Math.max(0, Math.min(90, safeNum(document.getElementById("imsakOffset").value, 20)));
+
+            if (lat == null || lng == null) {
+                document.getElementById("meta").textContent = "Select a city, use GPS, or enter Latitude/Longitude.";
+                errorEl.textContent = "Please set Latitude and Longitude (or select a city / click Use GPS).";
+                stopCountdown();
+                return;
+            }
+
+            // Force Jafari only
+            const pt = new PrayTimes("Jafari");
+
+            const today = new Date();
+            const times = pt.getTimes(today, [lat, lng], tz, 0, timeFormat);
+
+            const fajr = times.fajr;
+            const imsak = minusMinutes(fajr, imsakOffset, timeFormat);
+
+            const rows = [
+                { key: "imsak", label: "Imsak (stop eating)", value: imsak },
+                { key: "fajr", label: "Fajr (fast begins)", value: fajr },
+                { key: "sunrise", label: "Sunrise", value: times.sunrise },
+                { key: "dhuhr", label: "Dhuhr", value: times.dhuhr },
+                { key: "asr", label: "Asr", value: times.asr },
+                { key: "maghrib", label: "Maghrib (Iftar)", value: times.maghrib },
+                { key: "isha", label: "Isha", value: times.isha },
+            ];
+
+            const dateStr = today.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+            document.getElementById("meta").textContent = `${dateStr}`;
+
+            const hijri = hijriLong(today);
+            document.getElementById("hijriNote").textContent = hijri ? `Hijri: ${hijri}` : "";
+
+            document.getElementById("ramadanStatus").textContent = isRamadan(today) ? "Ramadan: Yes" : "Ramadan: No";
+
+            // Determine current & next
+            const nowMin = today.getHours() * 60 + today.getMinutes();
+            const schedule = rows
+                .map(r => ({ ...r, minutes: minutesSinceMidnight(r.value) }))
+                .filter(r => r.minutes != null);
+
+            let next = schedule.find(x => x.minutes > nowMin);
+            if (!next) {
+                const tomorrow = new Date(today);
+                tomorrow.setDate(today.getDate() + 1);
+                const t2 = pt.getTimes(tomorrow, [lat, lng], tz, 0, timeFormat);
+                const imsak2 = minusMinutes(t2.fajr, imsakOffset, timeFormat);
+                next = { key: "imsak", label: "Imsak (stop eating)", value: imsak2, minutes: minutesSinceMidnight(imsak2), dayOffset: 1 };
+            } else {
+                next.dayOffset = 0;
+            }
+
+            let current = schedule[0];
+            for (const item of schedule) if (item.minutes <= nowMin) current = item;
+
+            const list = document.getElementById("timesList");
+            list.innerHTML = rows.map(r => {
+                const isCurrent = current && r.key === current.key;
+                const badge = r.key === "imsak" ? "FAST" : (r.key === "maghrib" ? "IFTAR" : "");
+                return `
+            <div class="${isCurrent ? "hl" : ""}">
+              <div class="row">
+                <div>
+                  <div>${r.label}</div>
+                  ${badge ? `<div class="tiny">${badge}</div>` : ``}
+                </div>
+                <div style="font-weight:700;">${r.value}</div>
+              </div>
+            </div>
+          `;
+            }).join("");
+
+            lastComputed = {
+                timeFormat, lat, lng, tz, imsakOffset,
+                todayKey: toDateKey(today),
+                next
+            };
+
+            startCountdown();
+            persistInputs();
+        }
+
+        function stopCountdown() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            countdownTimer = null;
+            document.getElementById("nextPill").textContent = "Next: —";
+            document.getElementById("countdown").textContent = "—";
+            //document.getElementById("countdownNote").textContent = "";
+        }
+
+        function startCountdown() {
+            if (countdownTimer) clearInterval(countdownTimer);
+
+            function tick() {
+                const nextPill = document.getElementById("nextPill");
+                const countdown = document.getElementById("countdown");
+                //const note = document.getElementById("countdownNote");
+
+                if (!lastComputed) return;
+
+                const now = new Date();
+                if (toDateKey(now) !== lastComputed.todayKey) {
+                    computeAndRender();
+                    return;
+                }
+
+                const t = parseHHMM(lastComputed.next.value);
+                if (!t) return;
+
+                const target = new Date(now);
+                if (lastComputed.next.dayOffset === 1) target.setDate(target.getDate() + 1);
+                target.setHours(t.hh, t.mm, 0, 0);
+
+                let diffMs = target - now;
+                if (diffMs < 0) diffMs = 0;
+
+                const totalSec = Math.floor(diffMs / 1000);
+                const hh = Math.floor(totalSec / 3600);
+                const mm = Math.floor((totalSec % 3600) / 60);
+                const ss = totalSec % 60;
+
+                nextPill.textContent = `Next: ${lastComputed.next.label} • ${lastComputed.next.value}`;
+                countdown.textContent = `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
+                //note.textContent = `Method: Jafari • Imsak offset: ${lastComputed.imsakOffset} min`;
+            }
+
+            tick();
+            countdownTimer = setInterval(tick, 1000);
+        }
+
+        // -----------------------
+        // Ramadan monthly calendar (table + mobile cards)
+        // -----------------------
+        function generateRamadanCalendar() {
+            const errorEl = document.getElementById("error");
+            errorEl.textContent = "";
+
+            const timeFormat = document.getElementById("timeFormat").value;
+            const lat = safeNum(document.getElementById("lat").value, null);
+            const lng = safeNum(document.getElementById("lng").value, null);
+            const tz = safeNum(document.getElementById("tz").value, getLocalTzHours());
+            const imsakOffset = Math.max(0, Math.min(90, safeNum(document.getElementById("imsakOffset").value, 20)));
+
+            if (lat == null || lng == null) {
+                errorEl.textContent = "Please set Latitude and Longitude (select a city / GPS / manual) before generating Ramadan.";
+                return;
+            }
+
+            const pt = new PrayTimes("Jafari");
+            const today = new Date();
+
+            const range = findRamadanRange(today, 420);
+            if (!range) {
+                errorEl.textContent = "Could not detect Ramadan (browser Islamic calendar support missing).";
+                return;
+            }
+
+            const { first, last } = range;
+
+            const tbody = document.getElementById("ramadanTbody");
+            tbody.innerHTML = "";
+
+            const cards = document.getElementById("ramadanCards");
+            cards.innerHTML = "";
+
+            let dayNum = 1;
+            for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
+                const times = pt.getTimes(d, [lat, lng], tz, 0, timeFormat);
+                const imsak = minusMinutes(times.fajr, imsakOffset, timeFormat);
+
+                const greg = d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+                const hijri = hijriLong(d);
+
+                // Table row (desktop/tablet)
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+            <td><span class="tag">${dayNum}</span></td>
+            <td>${greg}</td>
+            <td>${hijri}</td>
+            <td><b>${imsak}</b></td>
+            <td><b>${times.fajr}</b></td>
+            <td>${times.sunrise}</td>
+            <td>${times.dhuhr}</td>
+            <td>${times.asr}</td>
+            <td><b>${times.maghrib}</b></td>
+            <td>${times.isha}</td>
+          `;
+                tbody.appendChild(tr);
+
+                // Mobile card (phones)
+                const card = document.createElement("div");
+                card.className = "dayCard";
+                card.setAttribute("tabindex", "0");
+                card.setAttribute("aria-label", `Ramadan day ${dayNum} timetable`);
+
+                card.innerHTML = `
+            <div class="dayHeader">
+              <div class="dayNum">Day ${dayNum}</div>
+              <div class="greg">${greg}</div>
+            </div>
+            <div class="hijriLine">${hijri}</div>
+
+            <div class="kv">
+              <div class="k">Imsak</div><div class="v">${imsak}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Fajr</div><div class="v">${times.fajr}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Sunrise</div><div class="v normal">${times.sunrise}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Dhuhr</div><div class="v normal">${times.dhuhr}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Asr</div><div class="v normal">${times.asr}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Maghrib (Iftar)</div><div class="v">${times.maghrib}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Isha</div><div class="v normal">${times.isha}</div>
+            </div>
+          `;
+                cards.appendChild(card);
+
+                dayNum++;
+            }
+
+            // Show card + title
+            const ramadanCard = document.getElementById("ramadanCard");
+            ramadanCard.style.display = "block";
+
+            const titleEl = document.getElementById("ramadanTitle");
+            //const subEl = document.getElementById("ramadanSubtitle");
+
+            const firstGreg = first.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+            const lastGreg = last.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+            const firstHij = hijriLong(first);
+            const lastHij = hijriLong(last);
+
+            titleEl.textContent = "Ramadan Monthly Calendar";
+            //subEl.textContent = `${firstHij} → ${lastHij}  •  ${firstGreg} → ${lastGreg}  •  Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)} • TZ ${tz} • Imsak offset ${imsakOffset} min`;
+
+            // Screen reader caption + hint
+            //document.getElementById("ramadanCaption").textContent =`Ramadan timetable for latitude ${lat.toFixed(4)} and longitude ${lng.toFixed(4)} (Jafari). Imsak offset ${imsakOffset} minutes.`;
+
+            //document.getElementById("scrollHint").style.display = "block";
+        }
+
+        function clearCalendar() {
+            document.getElementById("ramadanCard").style.display = "none";
+            document.getElementById("ramadanTbody").innerHTML = "";
+            document.getElementById("ramadanCards").innerHTML = "";
+            //document.getElementById("scrollHint").style.display = "none";
+        }
+
+        // -----------------------
+        // Location (City / GPS)
+        // -----------------------
+        function applyCity(key) {
+            if (!key || !cities[key]) return;
+            const c = cities[key];
+            document.getElementById("lat").value = c.lat.toFixed(6);
+            document.getElementById("lng").value = c.lng.toFixed(6);
+            document.getElementById("tz").value = getLocalTzHours();
+            computeAndRender();
+        }
+
+        function useGPS() {
+            const errorEl = document.getElementById("error");
+            errorEl.textContent = "";
+            if (!navigator.geolocation) {
+                errorEl.textContent = "Geolocation not supported by your browser.";
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    document.getElementById("lat").value = pos.coords.latitude.toFixed(6);
+                    document.getElementById("lng").value = pos.coords.longitude.toFixed(6);
+                    document.getElementById("tz").value = getLocalTzHours();
+                    computeAndRender();
+                },
+                () => { errorEl.textContent = "GPS blocked or unavailable. Select a city or enter lat/lng."; },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        // -----------------------
+        // Persist inputs
+        // -----------------------
+        function persistInputs() {
+            const state = {
+                city: document.getElementById("citySelect").value,
+                timeFormat: document.getElementById("timeFormat").value,
+                imsakOffset: safeNum(document.getElementById("imsakOffset").value, 20),
+                lat: safeNum(document.getElementById("lat").value, null),
+                lng: safeNum(document.getElementById("lng").value, null),
+                tz: safeNum(document.getElementById("tz").value, getLocalTzHours()),
+            };
+            saveState(state);
+        }
+
+        function hydrateInputs() {
+            const st = loadState();
+            document.getElementById("tz").value = getLocalTzHours();
+            document.getElementById("imsakOffset").value = 20;
+
+            if (st) {
+                if (st.city) document.getElementById("citySelect").value = st.city;
+                if (st.timeFormat) document.getElementById("timeFormat").value = st.timeFormat;
+                document.getElementById("imsakOffset").value = safeNum(st.imsakOffset, 20);
+                if (Number.isFinite(st.lat)) document.getElementById("lat").value = st.lat;
+                if (Number.isFinite(st.lng)) document.getElementById("lng").value = st.lng;
+                if (Number.isFinite(st.tz)) document.getElementById("tz").value = st.tz;
+            }
+        }
+
+        // -----------------------
+        // Wire up events
+        // -----------------------
+        hydrateInputs();
+
+        document.getElementById("citySelect").addEventListener("change", function () {
+            applyCity(this.value);
+            persistInputs();
+        });
+
+        document.getElementById("btnGeo").addEventListener("click", useGPS);
+        document.getElementById("btnRefresh").addEventListener("click", computeAndRender);
+
+        ["timeFormat", "imsakOffset", "lat", "lng", "tz"].forEach(id => {
+            document.getElementById(id).addEventListener("change", () => { computeAndRender(); persistInputs(); });
+        });
+
+        document.getElementById("btnRamadan").addEventListener("click", generateRamadanCalendar);
+        document.getElementById("btnClearCalendar").addEventListener("click", clearCalendar);
+
+        // Initial render
+        const saved = loadState();
+        if (saved?.city) applyCity(saved.city);
+        else computeAndRender();
+
+
+        let alertsEnabled = false;
+        let alertInterval = null;
+
+        function setAlertsStatus(text) {
+            const el = document.getElementById("alertsStatus");
+            if (el) el.textContent = text;
+        }
+
+        async function enableAlerts() {
+            // Notifications need HTTPS and permission
+            if (!("Notification" in window)) {
+                setAlertsStatus("Alerts: Not supported on this browser");
+                return;
+            }
+
+            const perm = await Notification.requestPermission();
+            if (perm !== "granted") {
+                setAlertsStatus("Alerts: Permission denied");
+                return;
+            }
+
+            // Arm audio (user interaction happened because they clicked the button)
+            const audio = document.getElementById("adhanAudio");
+            try {
+                if (audio) {
+                    audio.muted = true;
+                    await audio.play();
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio.muted = false;
+                }
+            } catch {
+                // Some browsers still block; notifications can still work
+            }
+
+            alertsEnabled = true;
+            setAlertsStatus("Alerts: On (works while app is open)");
+            startAlertLoop();
+        }
+
+        function startAlertLoop() {
+            if (alertInterval) clearInterval(alertInterval);
+
+            // check frequently to hit the exact minute
+            alertInterval = setInterval(() => {
+                if (!alertsEnabled || !lastComputed) return;
+
+                // Build today's schedule again from what’s on screen (safe + simple)
+                // We’ll notify for: Fajr, Dhuhr, Asr, Maghrib, Isha (skip Sunrise/Imsak by default)
+                const notifyKeys = new Set(["fajr", "dhuhr", "asr", "maghrib", "isha"]);
+
+                const now = new Date();
+                const dateKey = toDateKey(now);
+
+                // Find the next prayer in your already-built list by reading the DOM times
+                // (Alternatively we can rebuild from PrayTimes again; DOM reading avoids extra calc)
+                const rows = Array.from(document.querySelectorAll("#timesList .row"))
+                    .map((row) => {
+                        const label = row.querySelector("div div")?.textContent?.trim() || "";
+                        const time = row.querySelector("div[style*='font-weight']")?.textContent?.trim() || "";
+                        return { label, time };
+                    });
+
+                // Map label -> key (based on your labels)
+                const labelToKey = (label) => {
+                    if (label.startsWith("Fajr")) return "fajr";
+                    if (label === "Dhuhr") return "dhuhr";
+                    if (label === "Asr") return "asr";
+                    if (label.startsWith("Maghrib")) return "maghrib";
+                    if (label === "Isha") return "isha";
+                    return null;
+                };
+
+                const nowMin = now.getHours() * 60 + now.getMinutes();
+
+                for (const r of rows) {
+                    const key = labelToKey(r.label);
+                    if (!key || !notifyKeys.has(key)) continue;
+
+                    const tMin = minutesSinceMidnight(r.time);
+                    if (tMin == null) continue;
+
+                    // fire within the first 20 seconds of that minute
+                    if (tMin === nowMin && now.getSeconds() < 20) {
+                        const lastKey = localStorage.getItem("last_notified") || "";
+                        const thisKey = `${dateKey}_${key}_${r.time}`;
+                        if (lastKey === thisKey) return; // already notified
+
+                        localStorage.setItem("last_notified", thisKey);
+                        fireNotification(r.label, r.time);
+                        return;
+                    }
+                }
+            }, 15000);
+        }
+
+        function fireNotification(prayerName, time) {
+            try {
+                new Notification(`Adhan: ${prayerName}`, {
+                    body: `Time: ${time}`,
+                    silent: false
+                });
+            } catch {
+                // ignore
+            }
+
+            // Play audio if possible
+            const audio = document.getElementById("adhanAudio");
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(() => {
+                    // If blocked, notification still shows
+                });
+            }
+        }
+
+        function testAlert() {
+            fireNotification("Test", new Date().toLocaleTimeString());
+        }
+
+
+
+
+        async function registerSW() {
+            if (!("serviceWorker" in navigator)) return null;
+            return navigator.serviceWorker.register("/sw.js");
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+            const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+            const raw = atob(base64);
+            return Uint8Array.from([...raw].map(ch => ch.charCodeAt(0)));
+        }
+
+        async function enablePush() {
+            const status = document.getElementById("pushStatus");
+            status.textContent = "Push: Enabling…";
+
+            const reg = await registerSW();
+            if (!reg) { status.textContent = "Push: Not supported"; return; }
+
+            const perm = await Notification.requestPermission();
+            if (perm !== "granted") { status.textContent = "Push: Permission denied"; return; }
+
+            // Get VAPID public key from server
+            const { publicKey } = await (await fetch("/api/vapid-public-key")).json();
+
+            const subscription = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicKey)
+            });
+
+            // Collect user settings for server-side Iftar schedule
+            const lat = Number(document.getElementById("lat").value);
+            const lng = Number(document.getElementById("lng").value);
+            const city = document.getElementById("citySelect").value || "";
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
+            await fetch("/api/subscribe", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subscription, lat, lng, city, timeZone })
+            });
+
+            status.textContent = "Push: On (Iftar only)";
+        }
+
+        async function disablePush() {
+            const status = document.getElementById("pushStatus");
+            const reg = await navigator.serviceWorker.getRegistration();
+            const sub = await reg?.pushManager.getSubscription();
+            if (sub) {
+                await fetch("/api/unsubscribe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ endpoint: sub.endpoint })
+                });
+                await sub.unsubscribe();
+            }
+            status.textContent = "Push: Off";
+        }
+
+        document.getElementById("btnEnablePush")?.addEventListener("click", enablePush);
+        document.getElementById("btnDisablePush")?.addEventListener("click", disablePush);
+
+        // Register SW on load
+        registerSW();
+
+
+
+        document.getElementById("btnEnableAlerts")?.addEventListener("click", enableAlerts);
+        document.getElementById("btnTestAlert")?.addEventListener("click", testAlert);
+
+    </script>
+</body>
+
+</html>
