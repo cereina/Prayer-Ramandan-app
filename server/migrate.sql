@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS subscriptions (
+  endpoint TEXT PRIMARY KEY,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  lat DOUBLE PRECISION NOT NULL,
+  lng DOUBLE PRECISION NOT NULL,
+  city TEXT NOT NULL,
+  timezone TEXT NOT NULL,
+  last_sent_date TEXT
+);
